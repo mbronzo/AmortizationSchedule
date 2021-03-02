@@ -1,0 +1,69 @@
+from prettytable import PrettyTable
+
+
+def input_validation(message):
+    while True:
+        try:
+            user_input = float(input(message))
+        except ValueError:
+            print('Please, insert a number!')
+        else:
+            return user_input
+
+
+def loan_calculation(principal, interest_rate, expected_payment, extra_payment):
+    init_principal_list, end_principal_list, interest_list, ep_list, repaid_list, extra_payment_list = [], [], [], [], [], []
+    interest_rate = interest_rate/100
+    monthly_int_payment = principal * interest_rate / 12
+    principal_repayment = expected_payment - monthly_int_payment + extra_payment
+    if principal_repayment < 0:
+        print('Given the current interest rate and monthly fixed payment '
+              'the loan will never be repaid')
+    else:
+        while principal > 0:
+            init_principal_list.append(round(principal, 3))
+            monthly_int_payment = principal * interest_rate / 12
+            principal_repayment = expected_payment - monthly_int_payment + extra_payment
+            principal -= principal_repayment
+            end_principal_list.append(round(principal, 3))
+            interest_list.append(round(monthly_int_payment, 3))
+            ep_list.append(round(expected_payment, 3))
+            extra_payment_list.append(round(extra_payment, 3))
+            repaid_list.append(round(principal_repayment, 3))
+    if end_principal_list[-1] < 0:
+        init_principal_list.pop(-1)
+        interest_list.pop(-1)
+        ep_list.pop(-1)
+        extra_payment_list.pop(-1)
+        repaid_list.pop(-1)
+        end_principal_list.pop(-1)
+    return init_principal_list, interest_list, ep_list, extra_payment_list, repaid_list, end_principal_list
+
+
+principal = input_validation('Insert the principal of the loan: ')
+interest_rate = input_validation('Insert the interest rate applied (ie 8.2% = 8.2) : ')
+expected_payment = input_validation('Insert the required expected payment: ')
+extra_payment = input_validation('Insert any extra-payment, 0 if not applicable: ')
+
+try:
+    table = PrettyTable()
+    months = [i+1 for i in range(len(loan_calculation(principal, interest_rate, expected_payment, extra_payment)[0]))]
+    table.add_column('Months', months)
+    table.add_column('Initial Principal', loan_calculation(principal, interest_rate, expected_payment, extra_payment)[0])
+    table.add_column('Expected Payment', loan_calculation(principal, interest_rate, expected_payment, extra_payment)[2])
+    table.add_column('Interest Payment', loan_calculation(principal, interest_rate, expected_payment, extra_payment)[1])
+    table.add_column('Extra-Payment', loan_calculation(principal, interest_rate, expected_payment, extra_payment)[3])
+    table.add_column('Principal repaid', loan_calculation(principal, interest_rate, expected_payment, extra_payment)[4])
+    table.add_column('Ending Principal', loan_calculation(principal, interest_rate, expected_payment, extra_payment)[5])
+except Exception:
+    print("No data to display")
+else:
+    print(table)
+    years = months[-1]/12
+    int_tot = sum(loan_calculation(principal, interest_rate, expected_payment, extra_payment)[1])
+    ep_tot = sum(loan_calculation(principal, interest_rate, expected_payment, extra_payment)[2])
+    principal_repaid_tot = sum(loan_calculation(principal, interest_rate, expected_payment, extra_payment)[4])
+    print('Total years for loan schedule: ' + str(years))
+    print('Total payments for loan schedule: ' + str(round(ep_tot, 2)))
+    print('Total interest for loan schedule: ' + str(round(int_tot, 2)))
+    print('Total principal for loan schedule: ' + str(round(principal_repaid_tot, 2)))
